@@ -17,7 +17,20 @@ pub mod mutex;
 pub mod console;
 pub mod shell;
 
+pub fn blinky() {
+    use pi::timer::spin_sleep_ms;
+
+    let mut gpio16 = pi::gpio::Gpio::new(16).into_output();
+    loop {
+        gpio16.set();
+        spin_sleep_ms(1000);
+        gpio16.clear();
+        spin_sleep_ms(1000);
+    }
+}
+
 #[no_mangle]
 pub extern "C" fn kmain() {
+    blinky();
     // FIXME: Start the shell.
 }
