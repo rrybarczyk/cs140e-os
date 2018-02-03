@@ -19,8 +19,8 @@ impl Console {
     /// Initializes the console if it's not already initialized.
     #[inline]
     fn initialize(&mut self) {
-        if self.inner == None {
-            self.inner = MiniUart::new();
+        if let None = self.inner {
+            self.inner = Some(MiniUart::new());
         }
     }
 
@@ -28,7 +28,7 @@ impl Console {
     /// needed.
     fn inner(&mut self) -> &mut MiniUart {
         self.initialize();
-        unsafe {&self.inner}
+        self.inner.as_mut().unwrap()
     }
 
     /// Reads a byte from the UART device, blocking until a byte is available.
@@ -50,7 +50,10 @@ impl io::Read for Console {
 
 impl io::Write for Console {
     fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
-        self.write_str(buf)
+        for b in buf {
+            self.inner().write_byte(*b)
+        }
+        Ok(buf.len())
     }
 
     fn flush(&mut self) -> io::Result<()> {
