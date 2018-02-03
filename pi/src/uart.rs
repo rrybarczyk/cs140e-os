@@ -172,11 +172,12 @@ mod uart_io {
     // and read as many bytes as possible. The `io::Write::write()` method
     // must write all of the requested bytes.
     impl io::Read for MiniUart {
-        fn read(&mut self, buf: &mut [u8]) -> Result<usize> {
-            self.wait_for_byte()?;
+        fn read(&mut self, buf: &mut [u8]) -> Result<usize, io::Error> {
             let mut read = 0;
-            while self.has_byte() && read < buf.len() {
-                buf[i] = self.read_byte();
+            if self.wait_for_byte() == Ok(()){
+                while self.has_byte() && read < buf.len() {
+                    buf[read] = self.read_byte();
+                }
             }
             Ok(read)
         }
