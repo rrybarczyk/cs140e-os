@@ -144,14 +144,15 @@ impl MiniUart {
         }
     }
 
-    /// Reads a byte. Blocks until there is a byte available to read.
+    /// Reads a byte. Blocks indefinitely until a byte is ready to be read.
     pub fn read_byte(&mut self) -> u8 {
         while ! self.has_byte() { };
         self.registers.AUX_MU_IO_REG.read()
     }
 }
 
-// FIXME: Implement `fmt::Write` for `MiniUart`.
+// FIXME: Implement `fmt::Write` for `MiniUart`. A b'\r' byte should be written
+// before writing any b'\n' byte.
 impl fmt::Write for MiniUart {
     fn write_str(&mut self, s: &str) -> fmt::Result {
         for byte in s.bytes() {
@@ -168,9 +169,13 @@ mod uart_io {
 
     // FIXME: Implement `io::Read` and `io::Write` for `MiniUart`.
     //
-    // The `io::Read::read()` implementation must respect the read timeout
-    // and read as many bytes as possible. The `io::Write::write()` method
-    // must write all of the requested bytes.
+    // The `io::Read::read()` implementation must respect the read timeout by
+    // waiting at most that time for the _first byte_. It should not wait for
+    // any additional bytes but _should_ read as many bytes as possible. If the
+    // read times out, an error of kind `TimedOut` should be returned.
+    //
+    // The `io::Write::write()` method must write all of the requested bytes
+    // before returning.
     impl io::Read for MiniUart {
         fn read(&mut self, buf: &mut [u8]) -> Result<usize, io::Error> {
             let mut read = 0;
