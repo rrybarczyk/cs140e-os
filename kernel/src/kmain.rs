@@ -31,6 +31,11 @@ pub fn blinky() {
 
 #[no_mangle]
 pub extern "C" fn kmain() {
-    blinky();
+//    blinky();
+    loop {
+        write_byte(read_byte());
+        write_str("<-");
+    
+    }
     // FIXME: Start the shell.
 }

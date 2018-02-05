@@ -36,12 +36,29 @@ impl<'a> Command<'a> {
 
     /// Returns this command's path. This is equivalent to the first argument.
     fn path(&self) -> &str {
-        unimplemented!()
+        self.args.as_slice()[0]
     }
 }
 
 /// Starts a shell using `prefix` as the prefix for each line. This function
 /// never returns: it is perpetually in a shell loop.
 pub fn shell(prefix: &str) -> ! {
-    unimplemented!()
+    use std::io::Read;
+    unimplemented!();
+
+//    loop {
+//        kprint!("{}", prefix);
+//        let mut buf = [0u8; 512];
+//        let mut console = CONSOLE.lock();
+//        match (*console).read(&mut buf) {
+//            Ok(read) => {
+//                let mut argstring = unsafe {String::from_raw_parts(&mut buf[0], read, buf.len())};
+//                let mut vecBuf = [""; 512];
+//                let cmd = Command::parse(&argstring.as_str(), &mut vecBuf);
+//                kprintln!("");
+//                continue;
+//            }
+//            _ => {kprintln!(""); continue}
+//        }
+//    }
 }
