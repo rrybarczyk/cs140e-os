@@ -50,10 +50,7 @@ impl io::Read for Console {
 
 impl io::Write for Console {
     fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
-        for b in buf {
-            self.inner().write_byte(*b)
-        }
-        Ok(buf.len())
+        self.inner().write(buf)
     }
 
     fn flush(&mut self) -> io::Result<()> {
