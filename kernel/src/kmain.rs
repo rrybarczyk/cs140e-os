@@ -43,7 +43,7 @@ pub extern "C" fn kmain() {
 
     console::kprintln!("PRAISE THE SUN!\nMAY THE FLAME GUIDE THEE\n");
 
-    echo();
-//    shell::shell(">");
+//    echo();
+    shell::shell("> ");
     // FIXME: Start the shell.
 }
