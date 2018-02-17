@@ -28,8 +28,31 @@ use allocator::Allocator;
 #[global_allocator]
 pub static ALLOCATOR: Allocator = Allocator::uninitialized();
 
+pub fn blink(repeat: u8, interval: u64) {
+    use pi::timer::spin_sleep_ms;
+
+    let mut gpio16 = pi::gpio::Gpio::new(16).into_output();
+    for _ in 0..repeat {
+       gpio16.set();
+       spin_sleep_ms(interval);
+       gpio16.clear();
+       spin_sleep_ms(interval);
+    }
+}
+
+pub fn echo() {
+    loop {
+        let byte = console::CONSOLE.lock().read_byte();
+        console::CONSOLE.lock().write_byte(byte);
+        blink(1, 10);
+    }
+}
+
 #[no_mangle]
 #[cfg(not(test))]
 pub extern "C" fn kmain() {
-    ALLOCATOR.initialize();
+//    ALLOCATOR.initialize();
+    console::kprintln!("PRAISE THE SUN!\nMAY THE FLAME GUIDE THEE\n");
+    blink(3, 100);
+    shell::shell("> ");
 }
