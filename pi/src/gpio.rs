@@ -105,14 +105,11 @@ impl Gpio<Uninitialized> {
         let reg = self.pin as usize / 10;
         let bit= (self.pin as usize % 10) * 3;
         
-        let val = self.registers.FSEL[reg].read() & !(111 << bit);
+        let val = self.registers.FSEL[reg].read() & !(0b111 << bit);
         let val = val | (function as u32) << bit;
         self.registers.FSEL[reg].write(val);
-        Gpio {
-            registers: self.registers,
-            pin: self.pin,
-            _state: PhantomData
-        }
+
+        self.transition()
     }
 
     /// Sets this pin to be an _output_ pin. Consumes self and returns a `Gpio`
