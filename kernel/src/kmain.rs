@@ -23,6 +23,7 @@ pub mod shell;
 
 #[cfg(not(test))]
 use allocator::Allocator;
+use console::{kprintln, kprint};
 
 #[cfg(not(test))]
 #[global_allocator]
@@ -48,11 +49,24 @@ pub fn echo() {
     }
 }
 
+pub fn panic_test(n : usize) {
+    match n {
+        0 => {
+            let test : Option<u64> = None; 
+            test.unwrap();
+        }
+        1 => unreachable!(),
+        2 => panic!(),
+        _ => {}
+    }
+}
+
 #[no_mangle]
 #[cfg(not(test))]
 pub extern "C" fn kmain() {
-//    ALLOCATOR.initialize();
-    console::kprintln!("PRAISE THE SUN!\nMAY THE FLAME GUIDE THEE\n");
+    kprintln!("PRAISE THE SUN!");
+    kprintln!("MAY THE FLAME GUIDE THEE");
     blink(3, 100);
+//    ALLOCATOR.initialize();
     shell::shell("> ");
 }
