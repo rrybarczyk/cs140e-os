@@ -61,19 +61,22 @@ pub fn panic_test(n : usize) {
     }
 }
 
-#[no_mangle]
-#[cfg(not(test))]
-pub extern "C" fn kmain() {
-    kprintln!("PRAISE THE SUN!");
-    kprintln!("MAY THE FLAME GUIDE THEE");
-    blink(3, 100);
-//    ALLOCATOR.initialize();
-
-    let t = pi::atags::Atags::get();
+pub fn print_atag() {
     for atag in pi::atags::Atags::get() {
         kprintln!("{:#?}", atag);
     }
+}
 
+#[no_mangle]
+#[cfg(not(test))]
+pub extern "C" fn kmain() {
+    blink(3, 100);
+
+    kprintln!("PRAISE THE SUN!");
+
+    ALLOCATOR.initialize();
+    let hello = String::from("MAY THE FLAME GUIDE THEE!");
+    kprintln!("{}", hello);
 
     shell::shell("> ");
 }
