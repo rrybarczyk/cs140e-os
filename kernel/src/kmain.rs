@@ -68,5 +68,12 @@ pub extern "C" fn kmain() {
     kprintln!("MAY THE FLAME GUIDE THEE");
     blink(3, 100);
 //    ALLOCATOR.initialize();
+
+    let t = pi::atags::Atags::get();
+    for atag in pi::atags::Atags::get() {
+        kprintln!("{:#?}", atag);
+    }
+
+
     shell::shell("> ");
 }
