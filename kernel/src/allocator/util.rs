@@ -21,5 +21,5 @@ pub fn align_down(addr: usize, align: usize) -> usize {
 ///
 /// Panics if `align` is not a power of 2.
 pub fn align_up(addr: usize, align: usize) -> usize {
-    align_down(addr + align - 1, align)
+    align_down(addr.saturating_add(align - 1), align)
 }
