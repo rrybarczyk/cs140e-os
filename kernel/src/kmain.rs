@@ -8,6 +8,7 @@
 #![feature(attr_literals)]
 #![feature(exclusive_range_pattern)]
 #![feature(alloc, allocator_api, global_allocator)]
+#![feature(pointer_methods)]
 
 #[macro_use]
 #[allow(unused_imports)]
@@ -23,7 +24,7 @@ pub mod shell;
 
 #[cfg(not(test))]
 use allocator::Allocator;
-use console::{kprintln, kprint};
+use console::{kprintln};
 
 #[cfg(not(test))]
 #[global_allocator]
@@ -67,16 +68,29 @@ pub fn print_atag() {
     }
 }
 
+pub fn allocator_test() {
+    kprintln!("{:?}", ALLOCATOR);
+    {
+        let mut v = vec![];
+        for i in 0..1000 {
+            v.push(i);
+        }
+        kprintln!("{:?}", ALLOCATOR);
+    }
+    kprintln!("{:?}", ALLOCATOR);
+
+}
+
 #[no_mangle]
 #[cfg(not(test))]
 pub extern "C" fn kmain() {
-    blink(3, 100);
-
     kprintln!("PRAISE THE SUN!");
-
     ALLOCATOR.initialize();
-    let hello = String::from("MAY THE FLAME GUIDE THEE!");
-    kprintln!("{}", hello);
+
+//    let hello = String::from("MAY THE FLAME GUIDE THEE!");
+//    kprintln!("{}", hello);
+
+    kprintln!("{:?}", ALLOCATOR);
 
     shell::shell("> ");
 }
