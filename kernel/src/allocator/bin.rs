@@ -147,3 +147,5 @@ impl Allocator {
         }
     }
 }
+//
+// FIXME: Implement `Debug` for `Allocator`.
