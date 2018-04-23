@@ -17,7 +17,9 @@ const OVERDONE_PIE : &str =
 #[no_mangle]
 #[cfg(not(test))]
 #[lang = "panic_fmt"]
-pub extern fn panic_fmt(fmt: ::std::fmt::Arguments, file: &'static str, line: u32, col: u32) -> ! {
+pub extern fn 
+panic_fmt(fmt: ::std::fmt::Arguments, file: &'static str, line: u32, col: u32) -> ! 
+{
     kprint!("{}", OVERDONE_PIE);
     kprintln!("---------- PANIC ----------");
     kprintln!("FILE: {}", file);
@@ -29,4 +31,5 @@ pub extern fn panic_fmt(fmt: ::std::fmt::Arguments, file: &'static str, line: u3
     loop { unsafe { asm!("wfe") } }
 }
 
-#[cfg(not(test))] #[lang = "eh_personality"] pub extern fn eh_personality() {}
+#[cfg(not(test))] #[lang = "eh_personality"] 
+pub extern fn eh_personality() {}
