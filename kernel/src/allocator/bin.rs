@@ -141,7 +141,7 @@ impl Allocator {
             }
             None => {
                 unsafe {
-                    self.bins[sz - MIN_SLAB_SIZE_BITS].push(ptr as *mut usize);
+                    self.bins[sz.saturating_sub(MIN_SLAB_SIZE_BITS)].push(ptr as *mut usize);
                 }
             }
         }

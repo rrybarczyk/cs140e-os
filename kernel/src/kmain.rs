@@ -86,23 +86,10 @@ pub fn allocator_test() {
 
 pub fn list_root() {
     use fat32::traits::{FileSystem,Dir,Entry};
-//    use fs::sd;
-//    use fat32::traits::BlockDevice;
-//    use fat32::util::VecExt;
-//    use fat32::vfat::VFatUnknownDirEntry;
-
-//    let mut buf = Vec::new();
-//    buf.resize(512, 0);
-//    let mbr = mbr::MasterBootRecord::from(SD.unwrap());
-//    let vfat = vfat::VFat::from(SD.unwrap());
-//    let mut SD = sd::Sd::new().unwrap();
-//    SD.read_sector(30392, &mut buf);
-//    let mut buf : Vec<VFatUnknownDirEntry> = unsafe{ buf.cast() };
-//    kprintln!("{:?}", &mut buf);
 
     let root = FILE_SYSTEM.open_dir("/").unwrap();
-    kprintln!("{:?}", &root);
-    for e in root.entries().unwrap() {
+    let mut entries = root.entries().unwrap();
+    for e in entries {
         kprintln!("{}", e.name());
     }
 }
@@ -112,6 +99,7 @@ pub static FILE_SYSTEM: FileSystem = FileSystem::uninitialized();
 #[no_mangle]
 #[cfg(not(test))]
 pub extern "C" fn kmain() {
+    use fat32::traits::{FileSystem,Dir,Entry};
 
     kprintln!("PRAISE THE SUN!");
 
@@ -119,8 +107,6 @@ pub extern "C" fn kmain() {
     FILE_SYSTEM.initialize();
 
     list_root();
-
-
 
 //    let hello = String::from("MAY THE FLAME GUIDE THEE!");
 //    kprintln!("{}", hello);
