@@ -1,16 +1,16 @@
-//use std::fmt;
+use std::fmt;
 use alloc::heap::{AllocErr, Layout};
 use std::cmp::{min, max};
 
-//use allocator::util::*;
+use allocator::util::*;
 use allocator::linked_list::LinkedList;
-//use super::super::console::kprintln;
+use super::super::console::kprintln;
 
 const BINS_SIZE : usize = 32;
 const MIN_SLAB_SIZE_BITS : usize = 3;
 
 /// A simple allocator that allocates based on size classes.
-#[derive(Debug)]
+//#[derive(Debug)]
 pub struct Allocator {
     bins : [LinkedList; BINS_SIZE],
 }
@@ -27,7 +27,7 @@ impl Allocator {
                         (end - start).next_power_of_two() << 1);
             if sz >= 1 << MIN_SLAB_SIZE_BITS {
                 unsafe {
-                    bins[sz.trailing_zeros() as usize - MIN_SLAB_SIZE_BITS]
+                    bins[sz.trailing_zeros() as usize]
                         .push(start as *mut usize);
                 }
             }
@@ -60,6 +60,7 @@ impl Allocator {
     /// (`AllocError::Exhausted`) or `layout` does not meet this allocator's
     /// size or alignment constraints (`AllocError::Unsupported`).
     pub fn alloc(&mut self, layout: Layout) -> Result<*mut u8, AllocErr> {
+//        kprintln!("allocating object with size {}, align {}", layout.size(), layout.align());
         if !layout.align().is_power_of_two() {
             return Err(AllocErr::Unsupported {
                 details:"alignment is not power of 2"
@@ -69,31 +70,23 @@ impl Allocator {
                 details:"size is 0"
             });
         }
-        let sz_bits = layout.size().next_power_of_two().trailing_zeros();
 
-        Self::_alloc(self, sz_bits as usize, layout.align(), layout)
-    }
+        let size = align_up(layout.size().next_power_of_two(),
+                            max(layout.align(), 1 << MIN_SLAB_SIZE_BITS));
+        let index = size.trailing_zeros() as usize;
 
-    fn _alloc(&mut self, sz: usize, align: usize, layout: Layout) -> Result<*mut u8, AllocErr> {
-        // For sz < 3, use bin[0]
-        let bin_index = sz.saturating_sub(MIN_SLAB_SIZE_BITS);
-        if bin_index >= BINS_SIZE {
-            return Err(AllocErr::Exhausted{
-                request: layout
-            })
-        }
-        for node in self.bins[bin_index].iter_mut() {
-            let addr = node.value() as usize;
-            if (addr / align) * align == addr {
-                return Ok(node.pop() as *mut u8);
+        for i in index..self.bins.len() {
+            if self.bins[i].is_empty() { continue }
+            let addr = self.bins[i].pop().unwrap() as *mut u8;
+            for j in index..i {
+                unsafe {
+                    let buddy_addr = addr.add(1 << j) as *mut usize;
+                    self.bins[j].push(buddy_addr);
+                }
             }
+            return Ok(addr);
         }
-        let new_node = Self::_alloc(self, sz + 1, align, layout)?; 
-        unsafe {
-            self.bins[bin_index]
-                .push(new_node.add(1 << sz) as *mut usize);
-        }
-        Ok(new_node)
+        Err(AllocErr::Exhausted { request: layout })
     }
 
     /// Deallocates the memory referenced by `ptr`.
@@ -110,42 +103,35 @@ impl Allocator {
     /// Parameters not meeting these conditions may result in undefined
     /// behavior.
     pub fn dealloc(&mut self, ptr: *mut u8, layout: Layout) {
-        let sz_bits = layout.size().next_power_of_two().trailing_zeros();
-
-        Self::_dealloc(self, ptr, sz_bits as usize)
-    }
-
-    fn _dealloc(&mut self, ptr: *mut u8, sz: usize) {
-        let my_addr = ptr as usize;
-        let mut buddy : Option<usize> = None;
-        let buddy_addr = my_addr ^ (1 << sz);
-        // For sz < 3, use bin[0]
-        let bin_index = sz.saturating_sub(MIN_SLAB_SIZE_BITS);
-        if bin_index >= BINS_SIZE {
-            return;
-        }
-
-        for node in self.bins[bin_index].iter_mut() {
-            let node_addr = node.value() as usize;
-            if node_addr == buddy_addr {
-                node.pop();
-                buddy = Some(node_addr);
-                break;
-            }
-        }
-
-        match buddy {
-            Some(node_addr) => {
-                let new_addr = min(my_addr, node_addr);
-                Self::_dealloc(self, new_addr as *mut u8, sz + 1);
-            }
-            None => {
-                unsafe {
-                    self.bins[sz.saturating_sub(MIN_SLAB_SIZE_BITS)].push(ptr as *mut usize);
+//        kprintln!("dealloc ptr {:?}, sz {}, align {}", ptr, layout.size(), layout.align());
+        let size = align_up(layout.size().next_power_of_two(),
+                            max(layout.align(), 1 << MIN_SLAB_SIZE_BITS)) as usize;
+        let index = size.trailing_zeros() as usize;
+        let mut my_addr = ptr as usize;
+        for i in index..self.bins.len() {
+            let buddy_addr = my_addr ^ (1 << i);
+            let mut found_buddy = false;
+            for node in self.bins[i].iter_mut() {
+                if node.value() as usize == buddy_addr {
+                    node.pop();
+                    my_addr = min(buddy_addr, my_addr);
+                    found_buddy = true;
+                    break;
                 }
+            }
+
+            if !found_buddy {
+                unsafe {self.bins[i].push(my_addr as *mut usize);}
+                break;
             }
         }
     }
 }
-//
-// FIXME: Implement `Debug` for `Allocator`.
+
+impl fmt::Debug for Allocator {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        f.debug_struct("Bin Allocator")
+         .field("bins", &self.bins)
+         .finish()
+    }
+}
