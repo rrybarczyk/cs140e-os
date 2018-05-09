@@ -4,7 +4,7 @@ use std::cmp::{min, max};
 
 use allocator::util::*;
 use allocator::linked_list::LinkedList;
-use super::super::console::kprintln;
+//use super::super::console::kprintln;
 
 const BINS_SIZE : usize = 32;
 const MIN_SLAB_SIZE_BITS : usize = 3;

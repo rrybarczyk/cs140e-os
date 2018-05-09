@@ -45,15 +45,8 @@ impl<'a> Command<'a> {
     }
 
     fn cat(&self, pwd: &mut PathBuf) -> Result<(), ()> {
-        use std::io::{Read, Write};
+        use std::io::{Read};
         let dir_buf = PathBuf::from(self.args[1]);
-//        let dir_buf = if self.args.len() < 1 {
-//            pwd.clone()
-//        } else {
-//            PathBuf::from(args[0])
-//        };
-
-                kprintln!("here\n");
         let abs_path = {
             if dir_buf.is_absolute() {
                 dir_buf 
@@ -64,26 +57,30 @@ impl<'a> Command<'a> {
             }
         };
 
-                kprintln!("here\n");
         FILE_SYSTEM.open(abs_path)
             .and_then(|dir_entry| 
                       dir_entry.into_file().ok_or(io::Error::new(io::ErrorKind::Other, 
                                                                 "Is a directory")))
             .and_then(|mut file| {
-                kprintln!("here\n");
                 let mut buf = Vec::new();
                 match file.read_to_end(&mut buf) {
                     Ok(n) => {
-                        let s = str::from_utf8(&buf).unwrap();
+                        let s = str::from_utf8(&buf[..n]).unwrap();
                         kprintln!("{}", s);
+                        Ok(())
                     }
+                    Err(e) => {
+                        Err(e)
+                    }
+                }
+            })
+            .map_err(|e| {
+                match e.kind() {
+                    io::ErrorKind::Other => kprintln!("Is a directory"),
                     _ => {}
                 }
-            
-                Ok(())
-            
-            });
-        Ok(())
+                ()
+            })
     }
 
     fn cd(&self, pwd: &mut PathBuf) -> Result<(), ()> {
@@ -119,6 +116,8 @@ impl<'a> Command<'a> {
     }
 
     fn ls(&self, pwd: &mut PathBuf) -> Result<(),()> {
+        use fat32::traits::Metadata;
+
         let mut args = &self.args[1..];
         let all = args.get(0).and_then(|&arg| {
             if arg == "-a" {
@@ -152,7 +151,9 @@ impl<'a> Command<'a> {
             .and_then(|dir| dir.entries())
             .and_then(|entries| {
                 for e in entries {
-                    kprintln!("{}", e.name());
+                    if all || !e.metadata().hidden() {
+                        kprintln!("{}", e.name());
+                    }
                 }
                 Ok(())
             })
@@ -185,8 +186,7 @@ impl<'a> Command<'a> {
                 Ok(())
             }
         
-        };
-//        kprintln!("");
+        }.unwrap_or(());
     }
 }
 

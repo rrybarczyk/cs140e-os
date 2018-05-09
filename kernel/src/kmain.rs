@@ -108,5 +108,4 @@ pub extern "C" fn kmain() {
 //    kprintln!("{:?}", ALLOCATOR);
 
     shell::shell("> ");
-    loop{};
 }
