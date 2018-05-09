@@ -3,8 +3,7 @@ pub mod sd;
 use std::io;
 use std::path::Path;
 
-use fat32;
-use fat32::vfat::{self, Shared, VFat};
+use fat32::vfat::{Shared, VFat};
 pub use fat32::traits;
 
 use mutex::Mutex;
