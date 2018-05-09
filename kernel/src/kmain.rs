@@ -32,6 +32,7 @@ use fs::FileSystem;
 #[cfg(not(test))]
 #[global_allocator]
 pub static ALLOCATOR: Allocator = Allocator::uninitialized();
+pub static FILE_SYSTEM: FileSystem = FileSystem::uninitialized();
 
 pub fn blink(repeat: u8, interval: u64) {
     use pi::timer::spin_sleep_ms;
@@ -88,25 +89,18 @@ pub fn list_root() {
     use fat32::traits::{FileSystem,Dir,Entry};
 
     let root = FILE_SYSTEM.open_dir("/").unwrap();
-    let mut entries = root.entries().unwrap();
-    for e in entries {
+    for e in root.entries().unwrap() {
         kprintln!("{}", e.name());
     }
 }
 
-pub static FILE_SYSTEM: FileSystem = FileSystem::uninitialized();
-
 #[no_mangle]
 #[cfg(not(test))]
 pub extern "C" fn kmain() {
-    use fat32::traits::{FileSystem,Dir,Entry};
-
     kprintln!("PRAISE THE SUN!");
 
     ALLOCATOR.initialize();
     FILE_SYSTEM.initialize();
-
-    list_root();
 
 //    let hello = String::from("MAY THE FLAME GUIDE THEE!");
 //    kprintln!("{}", hello);
@@ -114,4 +108,5 @@ pub extern "C" fn kmain() {
 //    kprintln!("{:?}", ALLOCATOR);
 
     shell::shell("> ");
+    loop{};
 }
