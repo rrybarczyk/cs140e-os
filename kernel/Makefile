@@ -42,6 +42,9 @@ test:
 install: $(KERNEL).bin
 	$(TTYWRITE) -i $< $(PI_TTY)
 
+picocom:
+	picocom -b 115200 $(PI_TTY)
+
 $(RUST_DEBUG_LIB): $(RUST_DEPS)
 	@echo "+ Building $@ [xargo]"
 	@$(XARGO) build --target=$(TARGET)

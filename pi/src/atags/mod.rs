@@ -24,6 +24,8 @@ impl Iterator for Atags {
     type Item = Atag;
 
     fn next(&mut self) -> Option<Atag> {
-        unimplemented!("atags iterator")
+        let ret = Some(Atag::from(self.ptr));
+        self.ptr = self.ptr.next()?;
+        ret
     }
 }

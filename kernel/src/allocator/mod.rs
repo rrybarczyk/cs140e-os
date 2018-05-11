@@ -1,7 +1,7 @@
 mod linked_list;
 mod util;
 
-#[path = "bump.rs"]
+#[path = "bin.rs"]
 mod imp;
 
 #[cfg(test)]
@@ -9,7 +9,9 @@ mod tests;
 
 use mutex::Mutex;
 use alloc::heap::{Alloc, AllocErr, Layout};
-use std::cmp::max;
+//use std::cmp::max;
+
+extern crate pi;
 
 /// Thread-safe (locking) wrapper around a particular memory allocator.
 #[derive(Debug)]
@@ -88,6 +90,11 @@ extern "C" {
 /// This function is expected to return `Some` under all normal cirumstances.
 fn memory_map() -> Option<(usize, usize)> {
     let binary_end = unsafe { (&_end as *const u8) as u32 };
-
-    unimplemented!("memory map fetch")
+    for atag in pi::atags::Atags::get() {
+        if let pi::atags::Atag::Mem(raw) = atag {
+            return Some((binary_end as usize,
+                        (raw.start + raw.size) as usize));
+        }
+    }
+    return None;
 }
